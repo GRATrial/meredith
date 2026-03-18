@@ -14,6 +14,9 @@ export interface TrackingEvent {
   tab?: string;
   searchQuery?: string;
   condition?: string; // 'present' | 'absent' - footprint condition
+  prolificPid?: string; // Prolific participant ID
+  studyId?: string; // Prolific study ID
+  sessionIdProlific?: string; // Prolific session ID
 }
 
 // Generate or retrieve session ID
@@ -79,7 +82,13 @@ export const trackEvent = async (event: Omit<TrackingEvent, 'timestamp' | 'sessi
 };
 
 // Helper functions for common tracking scenarios
-export const trackResultClick = (resultId: string, platform: string, title: string, persona: string, condition?: string) => {
+export interface ProlificParams {
+  prolificPid?: string;
+  studyId?: string;
+  sessionIdProlific?: string;
+}
+
+export const trackResultClick = (resultId: string, platform: string, title: string, persona: string, condition?: string, prolific?: ProlificParams) => {
   trackEvent({
     eventType: 'click',
     elementType: 'result_card',
@@ -88,10 +97,11 @@ export const trackResultClick = (resultId: string, platform: string, title: stri
     platform,
     persona,
     condition,
+    ...prolific,
   });
 };
 
-export const trackImageClick = (imageId: string, imageTitle: string, persona: string, condition?: string) => {
+export const trackImageClick = (imageId: string, imageTitle: string, persona: string, condition?: string, prolific?: ProlificParams) => {
   trackEvent({
     eventType: 'click',
     elementType: 'image',
@@ -99,10 +109,11 @@ export const trackImageClick = (imageId: string, imageTitle: string, persona: st
     elementText: imageTitle,
     persona,
     condition,
+    ...prolific,
   });
 };
 
-export const trackTabChange = (tab: string, persona: string, condition?: string) => {
+export const trackTabChange = (tab: string, persona: string, condition?: string, prolific?: ProlificParams) => {
   trackEvent({
     eventType: 'tab_change',
     elementType: 'tab',
@@ -110,30 +121,33 @@ export const trackTabChange = (tab: string, persona: string, condition?: string)
     persona,
     tab,
     condition,
+    ...prolific,
   });
 };
 
-export const trackPagination = (page: number, persona: string, condition?: string) => {
+export const trackPagination = (page: number, persona: string, condition?: string, prolific?: ProlificParams) => {
   trackEvent({
     eventType: 'pagination',
     elementType: 'pagination',
     persona,
     page,
     condition,
+    ...prolific,
   });
 };
 
-export const trackSearch = (query: string, persona: string, condition?: string) => {
+export const trackSearch = (query: string, persona: string, condition?: string, prolific?: ProlificParams) => {
   trackEvent({
     eventType: 'search',
     elementType: 'search',
     searchQuery: query,
     persona,
     condition,
+    ...prolific,
   });
 };
 
-export const trackPageView = (persona: string, page?: number, tab?: string, condition?: string) => {
+export const trackPageView = (persona: string, page?: number, tab?: string, condition?: string, prolific?: ProlificParams) => {
   trackEvent({
     eventType: 'page_view',
     elementType: 'page',
@@ -141,10 +155,11 @@ export const trackPageView = (persona: string, page?: number, tab?: string, cond
     page,
     tab,
     condition,
+    ...prolific,
   });
 };
 
-export const trackProfileView = (resultId: string, platform: string, title: string, persona: string, condition?: string) => {
+export const trackProfileView = (resultId: string, platform: string, title: string, persona: string, condition?: string, prolific?: ProlificParams) => {
   trackEvent({
     eventType: 'profile_view',
     elementType: 'profile',
@@ -153,10 +168,11 @@ export const trackProfileView = (resultId: string, platform: string, title: stri
     platform,
     persona,
     condition,
+    ...prolific,
   });
 };
 
-export const trackProfileClose = (resultId: string, platform: string, persona: string, condition?: string) => {
+export const trackProfileClose = (resultId: string, platform: string, persona: string, condition?: string, prolific?: ProlificParams) => {
   trackEvent({
     eventType: 'profile_close',
     elementType: 'profile',
@@ -164,10 +180,11 @@ export const trackProfileClose = (resultId: string, platform: string, persona: s
     platform,
     persona,
     condition,
+    ...prolific,
   });
 };
 
-export const trackSessionEnd = (persona: string, page?: number, tab?: string, condition?: string) => {
+export const trackSessionEnd = (persona: string, page?: number, tab?: string, condition?: string, prolific?: ProlificParams) => {
   // Use sendBeacon for reliability during page unload
   const trackingEvent = {
     eventType: 'session_end',
@@ -176,6 +193,7 @@ export const trackSessionEnd = (persona: string, page?: number, tab?: string, co
     page,
     tab,
     condition,
+    ...prolific,
     timestamp: new Date().toISOString(),
     sessionId: (() => {
       let sessionId = sessionStorage.getItem('google_sim_session_id');

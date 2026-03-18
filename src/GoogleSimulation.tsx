@@ -11,7 +11,7 @@ import {
   type SimResult
 } from './data/results';
 import { getRelatedSearches } from './data/relatedSearches';
-import { trackPageView, trackTabChange, trackPagination, trackSearch, trackResultClick, trackEvent, trackProfileView, trackProfileClose, trackSessionEnd } from './utils/tracking';
+import { trackPageView, trackTabChange, trackPagination, trackSearch, trackResultClick, trackEvent, trackProfileView, trackProfileClose, trackSessionEnd, type ProlificParams } from './utils/tracking';
 
 interface GoogleSimulationProps {
   searchType?: 'meredith';
@@ -28,6 +28,13 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
   const initialParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const returnUrl = useMemo(() => initialParams.get('returnUrl') || 'https://gmu.az1.qualtrics.com/jfe/form/SV_dpetNtWS5RNFmMS', [initialParams]);
   const footprintCondition = useMemo(() => initialParams.get('condition') || 'present', [initialParams]);
+
+  // Capture Prolific parameters from URL
+  const prolificParams: ProlificParams = useMemo(() => ({
+    prolificPid: initialParams.get('PROLIFIC_PID') || undefined,
+    studyId: initialParams.get('STUDY_ID') || undefined,
+    sessionIdProlific: initialParams.get('SESSION_ID') || undefined,
+  }), [initialParams]);
 
   // Force light mode as requested
   const isDark = false;
@@ -47,31 +54,31 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
 
   // Track page view on mount
   useEffect(() => {
-    trackPageView('meredith', currentPage, activeTab, footprintCondition);
+    trackPageView('meredith', currentPage, activeTab, footprintCondition, prolificParams);
   }, []);
 
   // Track session end on beforeunload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      trackSessionEnd('meredith', currentPage, activeTab, footprintCondition);
+      trackSessionEnd('meredith', currentPage, activeTab, footprintCondition, prolificParams);
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [currentPage, activeTab, footprintCondition]);
+  }, [currentPage, activeTab, footprintCondition, prolificParams]);
 
   // Track tab changes
   useEffect(() => {
     if (activeTab) {
-      trackTabChange(activeTab, 'meredith', footprintCondition);
+      trackTabChange(activeTab, 'meredith', footprintCondition, prolificParams);
     }
-  }, [activeTab, footprintCondition]);
+  }, [activeTab, footprintCondition, prolificParams]);
 
   // Track pagination
   useEffect(() => {
     if (currentPage > 1) {
-      trackPagination(currentPage, 'meredith', footprintCondition);
+      trackPagination(currentPage, 'meredith', footprintCondition, prolificParams);
     }
-  }, [currentPage, footprintCondition]);
+  }, [currentPage, footprintCondition, prolificParams]);
 
   // Get results for Meredith (filter out LinkedIn/Facebook in footprint absent condition)
   const allResults = useMemo(() => {
@@ -136,7 +143,16 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#fff' }}>
-      <TopBar searchQuery={searchQuery} onSearchChange={setSearchQuery} isDark={isDark} />
+      <TopBar
+        searchQuery={searchQuery}
+        onSearchChange={(query) => {
+          setSearchQuery(query);
+          if (query) {
+            trackSearch(query, 'meredith', footprintCondition, prolificParams);
+          }
+        }}
+        isDark={isDark}
+      />
       <Tabs activeTab={activeTab} onTabChange={setActiveTab} isDark={isDark} />
 
       <div style={{ maxWidth: '1128px', margin: '0 auto', padding: isMobile ? '0 8px' : '0 16px' }}>
@@ -155,9 +171,15 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
                 persona: 'meredith',
                 page: currentPage,
                 tab: activeTab,
-                condition: footprintCondition
+                condition: footprintCondition,
+                ...prolificParams,
               });
-              window.location.href = returnUrl;
+              // Build return URL with Prolific params appended
+              const finalReturnUrl = new URL(returnUrl);
+              if (prolificParams.prolificPid) finalReturnUrl.searchParams.set('PROLIFIC_PID', prolificParams.prolificPid);
+              if (prolificParams.studyId) finalReturnUrl.searchParams.set('STUDY_ID', prolificParams.studyId);
+              if (prolificParams.sessionIdProlific) finalReturnUrl.searchParams.set('SESSION_ID', prolificParams.sessionIdProlific);
+              window.location.href = finalReturnUrl.toString();
             }}
             style={{
               backgroundColor: '#1a73e8',
@@ -208,13 +230,13 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
                         result={result}
                         onOpen={(result) => {
                           // Track the click for all results
-                          trackResultClick(result.id, result.platform, result.displayName, 'meredith', footprintCondition);
+                          trackResultClick(result.id, result.platform, result.displayName, 'meredith', footprintCondition, prolificParams);
                           // In footprint absent condition, no profiles open
                           if (footprintCondition === 'absent') return;
                           // Only open LinkedIn and Facebook profiles
                           if (result.platform === 'LinkedIn' || result.platform === 'Facebook') {
                             setSelectedResult(result);
-                            trackProfileView(result.id, result.platform, result.displayName, 'meredith', footprintCondition);
+                            trackProfileView(result.id, result.platform, result.displayName, 'meredith', footprintCondition, prolificParams);
                           }
                         }}
                         isDark={isDark}
@@ -239,7 +261,10 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
               }}>
                 {currentPage > 1 && (
                   <button
-                    onClick={() => setCurrentPage(currentPage - 1)}
+                    onClick={() => {
+                      setCurrentPage(currentPage - 1);
+                      trackPagination(currentPage - 1, 'meredith', footprintCondition, prolificParams);
+                    }}
                     style={{
                       padding: '8px 16px',
                       border: '1px solid #dadce0',
@@ -264,7 +289,10 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
                   return (
                     <button
                       key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
+                      onClick={() => {
+                        setCurrentPage(pageNum);
+                        trackPagination(pageNum, 'meredith', footprintCondition, prolificParams);
+                      }}
                       style={{
                         minWidth: '40px',
                         height: '40px',
@@ -285,7 +313,10 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
 
                 {currentPage < totalPages && (
                   <button
-                    onClick={() => setCurrentPage(currentPage + 1)}
+                    onClick={() => {
+                      setCurrentPage(currentPage + 1);
+                      trackPagination(currentPage + 1, 'meredith', footprintCondition, prolificParams);
+                    }}
                     style={{
                       padding: '8px 16px',
                       border: '1px solid #dadce0',
@@ -322,7 +353,7 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
         <LinkedInProfile
           resultId={selectedResult.id}
           onClose={() => {
-            if (selectedResult) { trackProfileClose(selectedResult.id, 'LinkedIn', 'meredith', footprintCondition); }
+            if (selectedResult) { trackProfileClose(selectedResult.id, 'LinkedIn', 'meredith', footprintCondition, prolificParams); }
             setSelectedResult(null);
           }}
         />
@@ -331,7 +362,7 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
         <FacebookProfile
           resultId={selectedResult.id}
           onClose={() => {
-            if (selectedResult) { trackProfileClose(selectedResult.id, 'Facebook', 'meredith', footprintCondition); }
+            if (selectedResult) { trackProfileClose(selectedResult.id, 'Facebook', 'meredith', footprintCondition, prolificParams); }
             setSelectedResult(null);
           }}
         />
