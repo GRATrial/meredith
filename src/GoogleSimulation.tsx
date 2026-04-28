@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { TopBar } from './components/TopBar';
 import { Tabs } from './components/Tabs';
 import { ResultCard } from './components/ResultCard';
@@ -66,18 +66,26 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [currentPage, activeTab, footprintCondition, prolificParams]);
 
-  // Track tab changes
+  // Track tab changes (skip first render to avoid spurious event on mount)
+  const isFirstTabRender = useRef(true);
   useEffect(() => {
+    if (isFirstTabRender.current) {
+      isFirstTabRender.current = false;
+      return;
+    }
     if (activeTab) {
       trackTabChange(activeTab, 'meredith', footprintCondition, prolificParams);
     }
   }, [activeTab, footprintCondition, prolificParams]);
 
-  // Track pagination
+  // Track pagination (skip first render to avoid spurious event on mount)
+  const isFirstPagRender = useRef(true);
   useEffect(() => {
-    if (currentPage > 1) {
-      trackPagination(currentPage, 'meredith', footprintCondition, prolificParams);
+    if (isFirstPagRender.current) {
+      isFirstPagRender.current = false;
+      return;
     }
+    trackPagination(currentPage, 'meredith', footprintCondition, prolificParams);
   }, [currentPage, footprintCondition, prolificParams]);
 
   // Get results for Meredith (filter out LinkedIn/Facebook in footprint absent condition)
@@ -263,7 +271,6 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
                   <button
                     onClick={() => {
                       setCurrentPage(currentPage - 1);
-                      trackPagination(currentPage - 1, 'meredith', footprintCondition, prolificParams);
                     }}
                     style={{
                       padding: '8px 16px',
@@ -291,7 +298,6 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
                       key={pageNum}
                       onClick={() => {
                         setCurrentPage(pageNum);
-                        trackPagination(pageNum, 'meredith', footprintCondition, prolificParams);
                       }}
                       style={{
                         minWidth: '40px',
@@ -315,7 +321,6 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
                   <button
                     onClick={() => {
                       setCurrentPage(currentPage + 1);
-                      trackPagination(currentPage + 1, 'meredith', footprintCondition, prolificParams);
                     }}
                     style={{
                       padding: '8px 16px',
