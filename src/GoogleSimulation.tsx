@@ -4,6 +4,8 @@ import { Tabs } from './components/Tabs';
 import { ResultCard } from './components/ResultCard';
 import { LinkedInProfileView as LinkedInProfile } from './components/LinkedInProfile';
 import { FacebookProfileView as FacebookProfile } from './components/FacebookProfile';
+import { InstagramProfile } from './components/InstagramProfile';
+import { XProfile } from './components/XProfile';
 import { PeopleAlsoSearchFor } from './components/PeopleAlsoSearchFor';
 
 import {
@@ -92,7 +94,7 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
   const allResults = useMemo(() => {
     if (footprintCondition === 'absent') {
       return RESULTS_Meredith_Mueller.filter(
-        r => r.platform !== 'LinkedIn' && r.platform !== 'Facebook'
+        r => r.platform !== 'LinkedIn' && r.platform !== 'Facebook' && r.platform !== 'Instagram' && r.platform !== 'X'
       );
     }
     return RESULTS_Meredith_Mueller;
@@ -242,7 +244,7 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
                           // In footprint absent condition, no profiles open
                           if (footprintCondition === 'absent') return;
                           // Only open LinkedIn and Facebook profiles
-                          if (result.platform === 'LinkedIn' || result.platform === 'Facebook') {
+                          if (result.platform === 'LinkedIn' || result.platform === 'Facebook' || result.platform === 'Instagram' || result.platform === 'X') {
                             setSelectedResult(result);
                             trackProfileView(result.id, result.platform, result.displayName, 'meredith', footprintCondition, prolificParams);
                           }
@@ -357,6 +359,9 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
       {selectedResult && selectedResult.platform === 'LinkedIn' && (
         <LinkedInProfile
           resultId={selectedResult.id}
+          persona="meredith"
+          condition={footprintCondition}
+          prolificParams={prolificParams}
           onClose={() => {
             if (selectedResult) { trackProfileClose(selectedResult.id, 'LinkedIn', 'meredith', footprintCondition, prolificParams); }
             setSelectedResult(null);
@@ -366,8 +371,35 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'mered
       {selectedResult && selectedResult.platform === 'Facebook' && (
         <FacebookProfile
           resultId={selectedResult.id}
+          persona="meredith"
+          condition={footprintCondition}
+          prolificParams={prolificParams}
           onClose={() => {
             if (selectedResult) { trackProfileClose(selectedResult.id, 'Facebook', 'meredith', footprintCondition, prolificParams); }
+            setSelectedResult(null);
+          }}
+        />
+      )}
+      {selectedResult && selectedResult.platform === 'Instagram' && (
+        <InstagramProfile
+          resultId={selectedResult.id}
+          persona="meredith"
+          condition={footprintCondition}
+          prolificParams={prolificParams}
+          onClose={() => {
+            if (selectedResult) { trackProfileClose(selectedResult.id, 'Instagram', 'meredith', footprintCondition, prolificParams); }
+            setSelectedResult(null);
+          }}
+        />
+      )}
+      {selectedResult && selectedResult.platform === 'X' && (
+        <XProfile
+          resultId={selectedResult.id}
+          persona="meredith"
+          condition={footprintCondition}
+          prolificParams={prolificParams}
+          onClose={() => {
+            if (selectedResult) { trackProfileClose(selectedResult.id, 'X', 'meredith', footprintCondition, prolificParams); }
             setSelectedResult(null);
           }}
         />
