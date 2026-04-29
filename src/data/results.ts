@@ -16,6 +16,7 @@ export type SimResult = {
   currentCompany?: string;       // For LinkedIn: current company
   followers?: string;            // For LinkedIn/Instagram: follower count
   sideImageUrl?: string;         // For right-side thumbnail
+  isTarget?: boolean;            // true = the canonical target persona's profile (overlay opens on click)
 };
 
 // Seed names - ### PLACEHOLDER: RESEARCHER WILL PASTE FINAL NAMES
@@ -2290,6 +2291,7 @@ export const RESULTS_Meredith_Mueller: SimResult[] = [
   },
   {
     id: "meredith6",
+    isTarget: true,
     platform: "LinkedIn",
     displayName: "Meredith Mueller - Great Lakes Financial Services",
     snippet: "280+ followers · Chicago, Illinois, United States · Great Lakes Financial Services · Experience: Great Lakes Financial Services · Education: University of Michigan · Location: Chicago · 320+ connections on LinkedIn. View Meredith Mueller's profile on LinkedIn, ...",
@@ -2303,6 +2305,7 @@ export const RESULTS_Meredith_Mueller: SimResult[] = [
   },
   {
     id: "meredith2",
+    isTarget: true,
     platform: "Facebook",
     displayName: "Meredith Mueller in people",
     snippet: "View the profiles of people named Meredith Mueller. Join Facebook to connect with Meredith Mueller and others you may know. Facebook gives people the...",
@@ -2315,10 +2318,11 @@ export const RESULTS_Meredith_Mueller: SimResult[] = [
   },
   {
     id: "meredith4",
+    isTarget: true,
     platform: "Instagram",
-    displayName: "Meredith Cline Mueller (@meredithmueller7)",
-    snippet: "350+ followers · Meredith Cline Mueller (@meredithmueller7) • Instagram photos and videos ... Meredith Cline Mueller. 350+ followers · 1.8K+ following · 288 posts ...Read more",
-    urlLike: "Instagram · meredithmueller7",
+    displayName: "Meredith Mueller (@meredithmueller) • Instagram",
+    snippet: "350+ followers · 156 following · 194 posts · @meredithmueller: Chicago | Finance | UMich Alum | Great Lakes Financial Services",
+    urlLike: "Instagram · meredithmueller",
     discoverability: "High",
     footprint: "Present",
     race: "White American",
@@ -2389,10 +2393,11 @@ export const RESULTS_Meredith_Mueller: SimResult[] = [
   // Page 2
   {
     id: "meredith11",
+    isTarget: true,
     platform: "X",
-    displayName: "Meredith Mueller (@bibliophilemnm) / Posts / X",
-    snippet: "110+ followers · Meredith Mueller ... Meredith. 34. Twin. Social Worker. Feminist. Professional procrastinator. Avid Reds fan. Prolific Temple Runner. Posts. Reposted by Meredith ...Read more",
-    urlLike: "X · bibliophilemnm",
+    displayName: "Meredith Mueller (@MeredithMCHI)",
+    snippet: "110+ followers · Finance professional | Chicago | Markets analysis and investment insights. Building wealth through strategic decisions.",
+    urlLike: "x.com › MeredithMCHI",
     discoverability: "High",
     footprint: "Present",
     race: "White American",
